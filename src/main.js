@@ -8,6 +8,7 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 //全局样式表
 import './assets/css/base.css'
 
+import '@/assets/fonts/iconfont.css'
 
 
 
@@ -15,6 +16,7 @@ const app = createApp(App)
 app.use(router)
 app.use(ElementPlus)
 app.mount('#app')
+
 
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component)
