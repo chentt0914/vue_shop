@@ -42,7 +42,7 @@
               <el-button type="danger" :icon="Delete" size="small" @click="removeUser(scope.row.id)" />
               <!-- 分配角色按钮 -->
               <el-tooltip class="box-item" effect="dark" content="分配角色" placement="top" enterable>
-                <el-button type="warning" :icon="Tools" size="small" />
+                <el-button type="warning" :icon="Tools" size="small" @click="distributeRoles(scope.row)" />
               </el-tooltip>
             </template>
           </el-table-column>
@@ -67,7 +67,7 @@
     <!-- 添加用户的对话框 -->
     <el-dialog v-model="dialogVisible" title="添加用户" @close="resetForm">
       <template #default>
-        <el-form :model="formData" :rules="formRules" ref="form">
+        <el-form :model="formData" :rules="formRules" ref="form" label-width="70px">
           <el-form-item label="用户名" prop="username">
             <el-input v-model="formData.username" />
           </el-form-item>
@@ -94,8 +94,8 @@
     <el-dialog v-model="editDialogVisible" title="修改用户" @close="resetEditForm">
       <template #default>
         <el-form :model="editFormData" :rules="editFormRules" ref="formRef">
-          <el-form-item label="用户名" disabled>
-            <el-input v-model="editFormData.username" />
+          <el-form-item label="用户名">
+            <el-input v-model="editFormData.username" disabled />
           </el-form-item>
           <el-form-item label="邮箱" prop="email">
             <el-input v-model="editFormData.email" />
@@ -112,13 +112,31 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 分配角色的对话框 -->
+    <el-dialog v-model="distributeDialogVisible" title="分配角色" @close="resetDistributeForm">
+      <div>当前的用户：{{ userInfo.username }}</div>
+      <div class="role">当前的角色：{{ userInfo.role_name }}</div>
+      <div>
+        分配新角色：
+        <el-select v-model="selectedRoleId" class="m-2" placeholder="请选择" size="small">
+          <el-option v-for="item in roleList" :key="item.id" :label="item.roleName" :value="item.id" />
+        </el-select>
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="distributeDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="addRoles">确定</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { ArrowRight, Search, Edit, Delete, Tools } from '@element-plus/icons-vue';
-import { GetUsers, ChangeuserState, Adduser, Finduser, Edituser, removeUser } from '@/network/user';
+import { GetUsers, ChangeuserState, Adduser, Finduser, Edituser, removeUser, getRolesList, addRoles } from '@/network/user';
 
 export default {
   data() {
@@ -191,6 +209,18 @@ export default {
         email: [{ required: true, message: '请输入邮箱', trigger: 'blur' }, { validator: checkEmail }],
         mobile: [{ required: true, message: '请输入手机号', trigger: 'blur' }, { validator: checkMobile }],
       },
+
+      //分配角色对话框的显示和隐藏
+      distributeDialogVisible: false,
+
+      // 分配角色的用户信息
+      userInfo: [],
+
+      // 角色信息
+      roleList: [],
+
+      // 被选中的角色id
+      selectedRoleId: '',
     };
   },
   created() {
@@ -260,6 +290,7 @@ export default {
 
     // 展示编辑对话框
     showEditDialog(id) {
+      //根据ID查询用户信息
       Finduser({ id }).then(res => {
         // console.log(res);
         if (res.data.meta.status !== 200) return ElMessage.error(res.data.meta.msg);
@@ -275,7 +306,7 @@ export default {
       this.$refs.formRef.resetFields();
     },
 
-    // 点击确定按钮验证表单
+    // 点击确定按钮验证表单修改用户信息
     editUser() {
       this.$refs.formRef.validate(valid => {
         if (!valid) return;
@@ -314,8 +345,42 @@ export default {
           });
         });
     },
+
+    // 分配角色
+    distributeRoles(userInfo) {
+      this.userInfo = userInfo;
+
+      getRolesList().then(res => {
+        // console.log(res);
+        if (res.data.meta.status !== 200) return ElMessage.error(res.data.meta.msg);
+        this.roleList = res.data.data;
+      });
+      this.distributeDialogVisible = true;
+    },
+
+    // 分配用户角色
+    addRoles() {
+      addRoles({ id: this.userInfo.id, rid: this.selectedRoleId }).then(res => {
+        // console.log(res);
+        if (res.data.meta.status !== 200) return ElMessage.error(res.data.meta.msg);
+        ElMessage.success(res.data.meta.msg);
+
+        this.getUsersList();
+        this.distributeDialogVisible = false;
+      });
+    },
+
+    // 重置对话框
+    resetDistributeForm() {
+      this.selectedRoleId = '';
+      this.userInfo.id = {};
+    },
   },
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style scoped>
+.role {
+  margin: 20px 0;
+}
+</style>

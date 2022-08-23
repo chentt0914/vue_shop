@@ -3,6 +3,8 @@ import Login from '@/views/Login'
 import Home from '@/views/Home'
 import Welcome from '@/components/Welcome'
 import Users from '@/components/user/Users'
+import Rights from '@/components/power/Rights'
+import Roles from '@/components/power/Roles'
 const routes = [
   {
     path: '/',
@@ -24,6 +26,14 @@ const routes = [
       {
         path:'/users',
         component:Users
+      },
+      {
+        path:'/rights',
+        component:Rights
+      },
+      {
+        path:'/roles',
+        component:Roles
       }
     ]
   }

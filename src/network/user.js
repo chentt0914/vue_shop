@@ -43,7 +43,7 @@ export function Edituser(params) {
   return request({
     url:`users/${params.id}`,
     method: "put",
-    params: {...params}
+    data: {...params}
   })
 }
 
@@ -53,5 +53,24 @@ export function removeUser(params) {
     url:`users/${params.id}`,
     method: "delete",
     params: {...params}
+  })
+}
+
+//请求角色列表
+export function getRolesList() {
+  return request({
+    url:"roles",
+    method: "get"
+  })
+}
+
+
+
+// 分配用户角色
+export function addRoles(params) {
+  return request({
+    url: `users/${params.id}/role`,
+    method: "put",
+    data: {...params}
   })
 }
